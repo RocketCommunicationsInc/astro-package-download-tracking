@@ -1,0 +1,15 @@
+# Output files
+jsdelivr_stats.csv
+
+# Mac OS files
+.DS_Store
+
+# Go specific
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
