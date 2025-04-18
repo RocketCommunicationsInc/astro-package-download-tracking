@@ -1,11 +1,9 @@
 package main
 
 import (
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 )
 
 // StatsResponse represents the JSON response from JSDelivr API
@@ -63,44 +61,14 @@ func fetchJSDelivrStats(packageName string) ([]*PackageStats, error) {
 	return allVersionStats, nil
 }
 
-// saveToCSV saves the package stats to a CSV file
-func saveToCSV(stats []*PackageStats, filename string) error {
-	file, err := os.Create(filename)
-	if err != nil {
-		return fmt.Errorf("error creating file: %v", err)
-	}
-	defer file.Close()
-
-	writer := csv.NewWriter(file)
-	defer writer.Flush()
+func collectJSDelivrStats() error {
+	packages := []string{"@astrouxds/react", "@astrouxds/astro-web-components"}
+	csvWriter := NewCSVWriter("jsdelivr_stats.csv")
 
 	// Write header
-	if err := writer.Write([]string{"Date", "Package", "Version", "Downloads"}); err != nil {
+	if err := csvWriter.WriteHeader(); err != nil {
 		return fmt.Errorf("error writing header: %v", err)
 	}
-
-	// Write data rows
-	for _, stat := range stats {
-		for date, downloads := range stat.Downloads {
-			if err := writer.Write([]string{
-				date,
-				stat.Name,
-				stat.Version,
-				fmt.Sprintf("%d", downloads),
-			}); err != nil {
-				return fmt.Errorf("error writing row: %v", err)
-			}
-		}
-	}
-
-	return nil
-}
-
-func main() {
-	// List of packages to track
-	packages := []string{"@astrouxds/react", "@astrouxds/astro-web-components"}
-
-	var allStats []*PackageStats
 
 	for _, pkg := range packages {
 		stats, err := fetchJSDelivrStats(pkg)
@@ -109,19 +77,13 @@ func main() {
 			continue
 		}
 
-		allStats = append(allStats, stats...)
 		for _, stat := range stats {
-			fmt.Printf("Fetched stats for %s: Version=%s, Downloads=%v\n",
-				pkg, stat.Version, stat.Downloads)
+			for date, downloads := range stat.Downloads {
+				if err := csvWriter.AppendData(date, stat.Name, stat.Version, downloads); err != nil {
+					return fmt.Errorf("error writing data: %v", err)
+				}
+			}
 		}
 	}
-
-	// Save data to CSV
-	csvFilename := "jsdelivr_stats.csv"
-	if err := saveToCSV(allStats, csvFilename); err != nil {
-		fmt.Printf("Error saving to CSV: %v\n", err)
-		return
-	}
-
-	fmt.Printf("Data saved to %s\n", csvFilename)
+	return nil
 }

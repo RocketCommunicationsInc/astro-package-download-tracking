@@ -1,5 +1,6 @@
 # Output files
 jsdelivr_stats.csv
+npm_stats.csv
 
 # Mac OS files
 .DS_Store
