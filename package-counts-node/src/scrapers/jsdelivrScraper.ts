@@ -51,7 +51,7 @@ export async function fetchJSDelivrStats(packageName: string): Promise<PackageSt
 }
 
 export async function collectJSDelivrStats() {
-    const packages = ['@astrouxds/react', '@astrouxds/astro-web-components'];
+    const packages = ['@astrouxds/react', '@astrouxds/astro-web-components, @astrouxds/angular, @astrouxds/tokens'];
     const csvWriter = new CSVWriter('jsdelivr_stats.csv');
 
     for (const pkg of packages) {
